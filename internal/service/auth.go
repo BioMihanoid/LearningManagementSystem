@@ -6,11 +6,13 @@ import (
 )
 
 type Auth struct {
-	repo *repository.Authorization
+	repos *repository.Repository
 }
 
-func NewAuth(repo *repository.Authorization) *Auth {
-	return &Auth{}
+func NewAuth(repos *repository.Repository) *Auth {
+	return &Auth{
+		repos: repos,
+	}
 }
 
 func (a *Auth) CreateUser(user models.User) error {

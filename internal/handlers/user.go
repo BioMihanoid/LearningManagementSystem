@@ -18,3 +18,7 @@ func NewUserHandler(service service.Service) *UserHandler {
 func (u *UserHandler) GetProfile(c *gin.Context) {}
 
 func (u *UserHandler) UpdateProfile(c *gin.Context) {}
+
+func (u *UserHandler) GetAllUsers(c *gin.Context) {}
+
+func (u *UserHandler) ChangeUserRole(c *gin.Context) {}

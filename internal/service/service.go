@@ -7,7 +7,7 @@ import (
 
 type Authorization interface {
 	CreateUser(user models.User) error
-	GetUser(username string, passwordHash string) (*models.User, error)
+	GetUser(name string, passwordHash string) (models.User, error)
 }
 
 type Service struct {
@@ -16,6 +16,6 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization: NewService(repos),
+		Authorization: NewAuth(repos),
 	}
 }

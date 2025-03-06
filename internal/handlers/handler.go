@@ -9,9 +9,9 @@ type Handler struct {
 	services service.Service
 }
 
-func NewHandler(services service.Service) *Handler {
+func NewHandler(services *service.Service) *Handler {
 	return &Handler{
-		services: services,
+		services: *services,
 	}
 }
 func (h *Handler) InitRoutes() *gin.Engine {
@@ -39,35 +39,31 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authGroup.GET("/profile", userHandler.GetProfile)
 		authGroup.PUT("/profile", userHandler.UpdateProfile)
 
-		// courseHandler
-		authGroup.GET("/courses")     // all courses
-		authGroup.GET("/courses/:id") // courses by id
+		courseHandler := NewCourseHandler(h.services)
+		authGroup.GET("/courses", courseHandler.GetAllCourses)
+		authGroup.GET("/courses/:id", courseHandler.GetCourseByID)
 
-		// lessonHandler
-		authGroup.GET("/courses/:id/lessons") // get lessons course
-		authGroup.GET("/lessons/:id")         //get lesson by id
+		lessonHandler := NewLessonHandler(h.services)
+		authGroup.GET("/courses/:id/lessons", lessonHandler.GetCourseLesson)
+		authGroup.GET("/lessons/:id", lessonHandler.GetLessonByID)
 
-		// testHandler
-		authGroup.GET("/test/:id")         // get test by id
-		authGroup.POST("/test/:id/submit") // get result test by id
+		testHandler := NewTestHandler(h.services)
+		authGroup.GET("/test/:id", testHandler.GetTestByID)
+		authGroup.POST("/test/:id/submit", testHandler.SubmitTest)
 
-		// admin routes
 		adminGroup := authGroup.Group("/admin")
 		adminGroup.Use() // TODO: function check role
 		{
-			// courseHandler
-			authGroup.POST("/courses")       // create course
-			authGroup.PUT("/courses/:id")    // update course
-			authGroup.DELETE("/courses/:id") // delete course
+			authGroup.POST("/courses")
+			authGroup.PUT("/courses/:id")
+			authGroup.DELETE("/courses/:id")
 
-			// lessonHandler
-			authGroup.POST("/lessons")       // create lesson
-			authGroup.PUT("/lessons/:id")    // update lesson
-			authGroup.DELETE("/lessons/:id") // delete lesson
+			authGroup.POST("/lessons", lessonHandler.CreateLesson)
+			authGroup.PUT("/lessons/:id", lessonHandler.UpdateLesson)
+			authGroup.DELETE("/lessons/:id", lessonHandler.DeleteLesson)
 
-			// userHandler
-			authGroup.GET("/users")          // get all users
-			authGroup.PUT("/users/:user_id") // change role user by id
+			authGroup.GET("/users", userHandler.GetAllUsers)
+			authGroup.PUT("/users/:user_id", userHandler.ChangeUserRole)
 		}
 	}
 
