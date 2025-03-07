@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/sirupsen/logrus"
 	"os"
 	"time"
 )
@@ -31,17 +32,17 @@ type DbConfig struct {
 func ParseConfig() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
-		panic("CONFIG_PATH is not set")
+		logrus.Panic("CONFIG_PATH is not set")
 	}
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		panic("config file does not exist")
+		logrus.Panic("config file does not exist")
 	}
 
 	var cfg Config
 
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		panic("cannot read configuration")
+		logrus.Panic("cannot read configuration")
 	}
 
 	return &cfg

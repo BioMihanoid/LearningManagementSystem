@@ -7,16 +7,17 @@ import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository/postgres"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	cfg := config.ParseConfig()
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
-	// TODO: init logger: logrus
+	cfg := config.ParseConfig()
 
 	db, err := postgres.NewPostgresDB(cfg)
 	if err != nil {
-		panic(err)
+		logrus.Panic(err)
 	}
 
 	repos := repository.NewRepository(db)
@@ -25,5 +26,6 @@ func main() {
 
 	srv := new(pkg.Server)
 	if err = srv.Start(cfg, handler.InitRoutes()); err != nil {
+		logrus.Fatalf("error occured while running http server: %s", err.Error())
 	}
 }
