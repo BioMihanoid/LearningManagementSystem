@@ -1,23 +1,48 @@
 package config
 
-import "time"
+import (
+	"github.com/ilyakaznacheev/cleanenv"
+	"os"
+	"time"
+)
 
 type Config struct {
-	ServerConfig
-	DbConfig
+	Server ServerConfig `yaml:"server"`
+	DB     DbConfig     `yaml:"db"`
 }
 
 type ServerConfig struct {
-	PortServ    string
-	Timeout     time.Duration
-	IdleTimeout time.Duration
+	Port        string        `yaml:"port" env-default:"8080"`
+	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
+	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 }
 
 type DbConfig struct {
-	Host    string
-	PortDb  string
-	User    string
-	Pass    string
-	Dbname  string
-	Sslmode string
+	Host    string `yaml:"host" env-required:"true"`
+	Port    string `yaml:"port" env-required:"true"`
+	User    string `yaml:"user" env-required:"true"`
+	Pass    string `yaml:"password" env-required:"true"`
+	Dbname  string `yaml:"dbname" env-required:"true"`
+	Sslmode string `yaml:"sslmode" env-default:"disable"`
+}
+
+//TODO: create fn do dsn
+
+func ParseConfig() *Config {
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		panic("CONFIG_PATH is not set")
+	}
+
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("config file does not exist")
+	}
+
+	var cfg Config
+
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		panic("cannot read configuration")
+	}
+
+	return &cfg
 }

@@ -10,12 +10,12 @@ type Server struct {
 	httpServer *http.Server
 }
 
-func (s *Server) Start(cfg config.Config, handler http.Handler) error {
+func (s *Server) Start(cfg *config.Config, handler http.Handler) error {
 	s.httpServer = &http.Server{
-		Addr:         ":" + cfg.PortServ,
-		ReadTimeout:  cfg.Timeout,
-		WriteTimeout: cfg.Timeout,
-		IdleTimeout:  cfg.IdleTimeout,
+		Addr:         ":" + cfg.Server.Port,
+		ReadTimeout:  cfg.Server.Timeout,
+		WriteTimeout: cfg.Server.Timeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
 		Handler:      handler,
 	}
 

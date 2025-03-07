@@ -7,10 +7,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func NewPostgresDB(cfg config.Config) (*sql.DB, error) {
+func NewPostgresDB(cfg *config.Config) (*sql.DB, error) {
 	db, err := sql.Open("postgres",
 		fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
-			cfg.Host, cfg.PortDb, cfg.User, cfg.Dbname, cfg.Pass, cfg.Sslmode),
+			cfg.DB.Host, cfg.DB.Port, cfg.DB.User, cfg.DB.Dbname, cfg.DB.Pass, cfg.DB.Sslmode),
 	)
 	if err != nil {
 		return nil, err
