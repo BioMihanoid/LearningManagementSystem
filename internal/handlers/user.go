@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type UserHandler struct {
@@ -15,7 +16,12 @@ func NewUserHandler(service service.Service) *UserHandler {
 	}
 }
 
-func (u *UserHandler) GetProfile(c *gin.Context) {}
+func (u *UserHandler) GetProfile(c *gin.Context) {
+	v, _ := c.Get("userId")
+	c.JSON(http.StatusOK, gin.H{
+		"userId": v,
+	})
+}
 
 func (u *UserHandler) UpdateProfile(c *gin.Context) {}
 

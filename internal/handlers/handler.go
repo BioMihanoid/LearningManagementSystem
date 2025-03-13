@@ -2,7 +2,11 @@ package handlers
 
 import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -14,6 +18,38 @@ func NewHandler(services *service.Service) *Handler {
 		services: *services,
 	}
 }
+
+var key = []byte("niggerspidors")
+
+func GenerateJWT(userId string, timeEnd time.Time) (string, error) {
+	claims := &jwt.StandardClaims{ExpiresAt: timeEnd.Unix(), Subject: userId}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString(key)
+}
+
+func GetUserIdFromJWT(tokenString string) (string, error) {
+	draft, err := jwt.ParseWithClaims(
+		tokenString,
+		&jwt.StandardClaims{},
+		func(token *jwt.Token) (interface{}, error) {
+			return key, nil
+		},
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	if draft.Valid {
+		id := draft.Claims.(*jwt.StandardClaims).Subject
+		return id, nil
+	}
+
+	return "", err
+}
+
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.Default()
 
@@ -33,7 +69,18 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	}
 
 	authGroup := auth.Group("/")
-	authGroup.Use() // TODO: function check auth
+	authGroup.Use(func(ctx *gin.Context) {
+		authHeaderValue := ctx.GetHeader("Authorization")
+		parsed := strings.Split(authHeaderValue, " ")
+		if len(parsed) > 1 && parsed[0] == "Bearer" {
+			userId, err := GetUserIdFromJWT(parsed[1])
+			if err != nil {
+				ctx.AbortWithStatus(http.StatusUnauthorized)
+			}
+			ctx.Set("userId", userId)
+		}
+		ctx.Next()
+	}) // TODO: function check auth
 	{
 		userHandler := NewUserHandler(h.services)
 		authGroup.GET("/profile", userHandler.GetProfile)
