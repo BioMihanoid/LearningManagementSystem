@@ -26,6 +26,15 @@ var RegisterRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+var LoginRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+var RegisterResponse struct{}
+
+var LoginResponse struct{}
+
 func (h *AuthHandler) Register(c *gin.Context) {
 	input := RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -39,9 +48,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Name:     input.Username,
 		Email:    input.Email,
 		Password: input.Password,
+		Role:     "user",
 	}
 
-	_, err := h.service.CreateUser(u)
+	id, err := h.service.CreateUser(u)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
@@ -51,15 +61,24 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	// TODO: do createUser
 
-	userId := strconv.Itoa(int(u.ID))
-
-	jwt, _ := GenerateJWT(userId, time.Now().Add(15*time.Minute))
+	jwt, _ := GenerateJWT(strconv.Itoa(id), time.Now().Add(15*time.Minute))
 
 	c.JSON(http.StatusOK, jwt)
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
+	input := LoginRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("invalid request format")})
+		return
+	}
 
+	user, err := h.service.GetUser(input.Email, input.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	jwt, _ := GenerateJWT(strconv.Itoa(int(user.ID)), time.Now().Add(15*time.Minute))
+	c.JSON(http.StatusOK, jwt)
 }
-
-func (h *AuthHandler) RefreshToken(c *gin.Context) {}

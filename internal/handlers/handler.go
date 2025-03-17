@@ -65,7 +65,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
-		auth.POST("/refresh-token", authHandler.RefreshToken)
 	}
 
 	authGroup := auth.Group("/")
