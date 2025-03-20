@@ -10,12 +10,20 @@ type Authorization interface {
 	GetUser(name string, password string) (models.User, error)
 }
 
+type UserService interface {
+	GetAllUsers() ([]models.User, error)
+	GetUserById(id int) (models.User, error)
+	ChangeUserRole(id int, role string) error
+}
+
 type Service struct {
 	Authorization
+	UserService
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuth(repos),
+		UserService:   NewUser(repos),
 	}
 }

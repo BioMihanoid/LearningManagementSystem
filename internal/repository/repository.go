@@ -12,12 +12,20 @@ type Authorization interface {
 	GetUserID(email string) (int, error)
 }
 
+type UserRepository interface {
+	GetAllUsers() ([]models.User, error)
+	GetUserByID(id int) (models.User, error)
+	ChangeUserRole(id int, role string) error
+}
+
 type Repository struct {
 	Authorization
+	UserRepository
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		Authorization: postgres.NewAuth(db),
+		Authorization:  postgres.NewAuth(db),
+		UserRepository: postgres.NewUser(db),
 	}
 }

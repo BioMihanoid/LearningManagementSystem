@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/BioMihanoid/LearningManagementSystem/models"
+	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -20,65 +21,106 @@ func NewAuthHandler(service service.Service) *AuthHandler {
 	}
 }
 
-var RegisterRequest struct {
+type RegisterRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-var LoginRequest struct {
+type LoginRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-var RegisterResponse struct{}
+type RegisterResponse struct {
+	Token string `json:"token" binding:"required"`
+}
 
-var LoginResponse struct{}
+type LoginResponse struct {
+	Token string `json:"token" binding:"required"`
+}
 
 func (h *AuthHandler) Register(c *gin.Context) {
-	input := RegisterRequest
+	input := RegisterRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("invalid request format")})
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request: %s", err.Error()),
+		})
+		return
+	}
+
+	user, err := h.service.GetUser(input.Email, input.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error get user"),
+		})
+		return
+	}
+
+	if user.ID != 0 {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("user with email %s exists", input.Email),
+		})
 		return
 	}
 
 	// TODO: validate data: validator
 
-	u := models.User{
+	user = models.User{
 		Name:     input.Username,
 		Email:    input.Email,
 		Password: input.Password,
 		Role:     "user",
 	}
 
-	id, err := h.service.CreateUser(u)
+	id, err := h.service.CreateUser(user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error create user"),
+		})
 		return
 	}
 
-	// TODO: check existing user in db
+	jwt, err := GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error create jwt"),
+		})
+		return
+	}
 
-	// TODO: do createUser
+	output := RegisterResponse{Token: jwt}
 
-	jwt, _ := GenerateJWT(strconv.Itoa(id), time.Now().Add(15*time.Minute))
-
-	c.JSON(http.StatusOK, jwt)
+	c.JSON(http.StatusOK, output)
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	input := LoginRequest
+	input := LoginRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("invalid request format")})
-		return
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request"),
+		})
 	}
 
 	user, err := h.service.GetUser(input.Email, input.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error get user"),
+		})
 		return
 	}
 
-	jwt, _ := GenerateJWT(strconv.Itoa(int(user.ID)), time.Now().Add(15*time.Minute))
-	c.JSON(http.StatusOK, jwt)
+	jwt, err := GenerateJWT(strconv.Itoa(int(user.ID)), time.Now().Add(30*time.Minute))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error create jwt"),
+		})
+		return
+	}
+
+	output := LoginResponse{
+		Token: jwt,
+	}
+
+	c.JSON(http.StatusOK, output)
 }
