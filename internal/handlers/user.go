@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
+	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -25,11 +26,9 @@ type profileResponse struct {
 	Role     string `json:"role"`
 }
 
-// for updateUser
 type profileRequest struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
-	Role     string `json:"role"`
 }
 
 type roleRequest struct {
@@ -37,9 +36,7 @@ type roleRequest struct {
 }
 
 func (u *UserHandler) GetProfile(c *gin.Context) {
-	v, _ := c.Get("userId")
-
-	id, _ := strconv.Atoi(v.(string))
+	id := GetUserID(c)
 
 	user, err := u.service.GetUserById(id)
 	if err != nil {
@@ -55,7 +52,26 @@ func (u *UserHandler) GetProfile(c *gin.Context) {
 }
 
 func (u *UserHandler) UpdateProfile(c *gin.Context) {
+	input := profileRequest{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 
+	// TODO validate email
+
+	id := GetUserID(c)
+
+	user := models.User{
+		ID:    uint(id),
+		Name:  input.Username,
+		Email: input.Email,
+	}
+
+	err := u.service.UpdateUser(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func (u *UserHandler) GetAllUsers(c *gin.Context) {
@@ -100,4 +116,12 @@ func (u *UserHandler) ChangeUserRole(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func GetUserID(c *gin.Context) int {
+	v, _ := c.Get("userId")
+
+	id, _ := strconv.Atoi(v.(string))
+
+	return id
 }

@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type Handler struct {
@@ -19,37 +18,6 @@ func NewHandler(services *service.Service) *Handler {
 	}
 }
 
-var key = []byte("niggerspidors")
-
-func GenerateJWT(userId string, timeEnd time.Time) (string, error) {
-	claims := &jwt.StandardClaims{ExpiresAt: timeEnd.Unix(), Subject: userId}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	return token.SignedString(key)
-}
-
-func GetUserIdFromJWT(tokenString string) (string, error) {
-	draft, err := jwt.ParseWithClaims(
-		tokenString,
-		&jwt.StandardClaims{},
-		func(token *jwt.Token) (interface{}, error) {
-			return key, nil
-		},
-	)
-
-	if err != nil {
-		return "", err
-	}
-
-	if draft.Valid {
-		id := draft.Claims.(*jwt.StandardClaims).Subject
-		return id, nil
-	}
-
-	return "", err
-}
-
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.Default()
 
@@ -59,7 +27,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		})
 	})
 
-	// TODO: do auth with middleware and token
 	authHandler := NewAuthHandler(h.services)
 	auth := router.Group("/auth")
 	{
@@ -72,14 +39,14 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authHeaderValue := ctx.GetHeader("Authorization")
 		parsed := strings.Split(authHeaderValue, " ")
 		if len(parsed) > 1 && parsed[0] == "Bearer" {
-			userId, err := GetUserIdFromJWT(parsed[1])
+			userId, err := pkg.GetUserIdFromJWT(parsed[1])
 			if err != nil {
 				ctx.AbortWithStatus(http.StatusUnauthorized)
 			}
 			ctx.Set("userId", userId)
 		}
 		ctx.Next()
-	}) // TODO: function check auth
+	})
 	{
 		userHandler := NewUserHandler(h.services)
 		authGroup.GET("/profile", userHandler.GetProfile)
@@ -97,19 +64,23 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authGroup.GET("/test/:id", testHandler.GetTestByID)
 		authGroup.POST("/test/:id/submit", testHandler.SubmitTest)
 
-		adminGroup := authGroup.Group("/admin")
-		adminGroup.Use() // TODO: function check role
+		teacherGroup := authGroup.Group("/teacher")
+		teacherGroup.Use(pkg.AuthorizeRole("teacher", h.services))
 		{
-			authGroup.POST("/courses")
-			authGroup.PUT("/courses/:id")
-			authGroup.DELETE("/courses/:id")
+			teacherGroup.POST("/courses")
+			teacherGroup.PUT("/courses/:id")
+			teacherGroup.DELETE("/courses/:id")
 
-			authGroup.POST("/lessons", lessonHandler.CreateLesson)
-			authGroup.PUT("/lessons/:id", lessonHandler.UpdateLesson)
-			authGroup.DELETE("/lessons/:id", lessonHandler.DeleteLesson)
+			teacherGroup.POST("/lessons", lessonHandler.CreateLesson)
+			teacherGroup.PUT("/lessons/:id", lessonHandler.UpdateLesson)
+			teacherGroup.DELETE("/lessons/:id", lessonHandler.DeleteLesson)
+		}
 
-			authGroup.GET("/users", userHandler.GetAllUsers)
-			authGroup.PUT("/users/:user_id", userHandler.ChangeUserRole)
+		adminGroup := authGroup.Group("/admin")
+		adminGroup.Use(pkg.AuthorizeRole("admin", h.services))
+		{
+			adminGroup.GET("/users", userHandler.GetAllUsers)
+			adminGroup.PUT("/users/:user_id", userHandler.ChangeUserRole)
 		}
 	}
 

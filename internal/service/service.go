@@ -14,6 +14,7 @@ type UserService interface {
 	GetAllUsers() ([]models.User, error)
 	GetUserById(id int) (models.User, error)
 	ChangeUserRole(id int, role string) error
+	UpdateUser(user models.User) error
 }
 
 type Service struct {

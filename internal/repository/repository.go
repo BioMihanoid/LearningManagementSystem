@@ -16,6 +16,7 @@ type UserRepository interface {
 	GetAllUsers() ([]models.User, error)
 	GetUserByID(id int) (models.User, error)
 	ChangeUserRole(id int, role string) error
+	UpdateUser(user models.User) error
 }
 
 type Repository struct {

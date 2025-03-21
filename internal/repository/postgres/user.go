@@ -55,11 +55,14 @@ func (u *User) GetUserByID(id int) (models.User, error) {
 
 func (u *User) ChangeUserRole(id int, role string) error {
 	query := fmt.Sprintf("UPDATE %s SET role = $1 WHERE id = $2", usersTable)
-
 	_, err := u.db.Exec(query, role, id)
-	if err != nil {
-		return err
-	}
+	return err
+}
 
-	return nil
+func (u *User) UpdateUser(user models.User) error {
+	query := fmt.Sprintf("UPDATE %s set username = $1 WHERE id = $2", usersTable)
+	_, err := u.db.Exec(query, user.Name, int(user.ID))
+	query = fmt.Sprintf("UPDATE %s set email = $1 WHERE id = $2", usersTable)
+	_, err = u.db.Exec(query, user.Email, int(user.ID))
+	return err
 }

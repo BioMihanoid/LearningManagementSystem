@@ -31,3 +31,22 @@ func (u *User) ChangeUserRole(id int, role string) error {
 
 	return u.repos.ChangeUserRole(id, role)
 }
+
+func (u *User) UpdateUser(changeUser models.User) error {
+	user, err := u.GetUserById(int(changeUser.ID))
+	if err != nil {
+		return err
+	}
+	_ = user
+
+	if changeUser.Email != "" {
+		user.Email = changeUser.Email
+	}
+	if changeUser.Name != "" {
+		user.Name = changeUser.Name
+	}
+
+	err = u.repos.UpdateUser(user)
+
+	return err
+}

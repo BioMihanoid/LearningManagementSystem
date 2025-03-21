@@ -81,7 +81,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	jwt, err := GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
+	jwt, err := pkg.GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: fmt.Sprintf("error create jwt"),
@@ -110,7 +110,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	jwt, err := GenerateJWT(strconv.Itoa(int(user.ID)), time.Now().Add(30*time.Minute))
+	jwt, err := pkg.GenerateJWT(strconv.Itoa(int(user.ID)), time.Now().Add(30*time.Minute))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: fmt.Sprintf("error create jwt"),
