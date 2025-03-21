@@ -124,3 +124,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, output)
 }
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	id := GetUserID(c)
+
+	jwt, err := pkg.GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error create jwt"),
+		})
+	}
+
+	output := LoginResponse{
+		Token: jwt,
+	}
+
+	c.JSON(http.StatusOK, output)
+}
