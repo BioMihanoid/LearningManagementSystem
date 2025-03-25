@@ -6,6 +6,7 @@ import (
 	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
 	"time"
@@ -22,9 +23,10 @@ func NewAuthHandler(service service.Service) *AuthHandler {
 }
 
 type RegisterRequest struct {
-	Email    string `json:"email" binding:"required"`
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email     string `json:"email" binding:"required"`
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name" binding:"required"`
+	Password  string `json:"password" binding:"required"`
 }
 
 type LoginRequest struct {
@@ -49,6 +51,15 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	err := validate.Struct(input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Errorf("error incorect data").Error(),
+		})
+	}
+
 	user, err := h.service.GetUser(input.Email, input.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
@@ -64,13 +75,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// TODO: validate data: validator
+	validate = validator.New(validator.WithRequiredStructEnabled())
+
+	err = validate.Struct(input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Errorf("error incorect data").Error(),
+		})
+	}
 
 	user = models.User{
-		Name:     input.Username,
-		Email:    input.Email,
-		Password: input.Password,
-		Role:     "user",
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+		Password:  input.Password,
+		RoleID:    1,
 	}
 
 	id, err := h.service.CreateUser(user)
@@ -99,6 +118,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: fmt.Sprintf("error parsing request"),
+		})
+	}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	err := validate.Struct(input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Errorf("error incorect data").Error(),
 		})
 	}
 

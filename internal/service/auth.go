@@ -35,7 +35,7 @@ func (a *Auth) CreateUser(user models.User) (int, error) {
 func (a *Auth) GetUser(name string, password string) (models.User, error) {
 	user, err := a.repos.GetUser(name, password)
 	if err != nil {
-		return models.User{}, err
+		return user, err
 	}
 
 	return user, nil

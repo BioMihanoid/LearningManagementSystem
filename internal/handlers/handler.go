@@ -66,7 +66,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authGroup.POST("/test/:id/submit", testHandler.SubmitTest)
 
 		teacherGroup := authGroup.Group("/teacher")
-		teacherGroup.Use(pkg.AuthorizeRole("teacher", h.services))
+		//TODO: create new check role fn
+		teacherGroup.Use()
 		{
 			teacherGroup.POST("/courses")
 			teacherGroup.PUT("/courses/:id")
@@ -78,7 +79,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		}
 
 		adminGroup := authGroup.Group("/admin")
-		adminGroup.Use(pkg.AuthorizeRole("admin", h.services))
+		//TODO: create new check role fn
+		adminGroup.Use()
 		{
 			adminGroup.GET("/users", userHandler.GetAllUsers)
 			adminGroup.PUT("/users/:user_id", userHandler.ChangeUserRole)

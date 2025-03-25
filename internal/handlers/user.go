@@ -6,8 +6,10 @@ import (
 	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type UserHandler struct {
@@ -21,22 +23,40 @@ func NewUserHandler(service service.Service) *UserHandler {
 }
 
 type profileResponse struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
 }
 
 type profileRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
 }
 
 type roleRequest struct {
 	Role string `json:"role"`
 }
 
+type authHeader struct {
+	Token string `header:"Authorization"`
+}
+
 func (u *UserHandler) GetProfile(c *gin.Context) {
-	id := GetUserID(c)
+	h := authHeader{}
+	if err := c.ShouldBindHeader(&h); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token := strings.Split(h.Token, "Bearer ")[1]
+
+	strID, err := pkg.GetUserIdFromJWT(token)
+	id, err := strconv.Atoi(strID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	user, err := u.service.GetUserById(id)
 	if err != nil {
@@ -45,9 +65,9 @@ func (u *UserHandler) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, profileResponse{
-		Username: user.Name,
-		Email:    user.Email,
-		Role:     user.Role,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
 	})
 }
 
@@ -57,17 +77,25 @@ func (u *UserHandler) UpdateProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	// TODO validate email
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	err := validate.Struct(input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Errorf("error incorect data").Error(),
+		})
+	}
 
 	id := GetUserID(c)
 
 	user := models.User{
-		ID:    uint(id),
-		Name:  input.Username,
-		Email: input.Email,
+		ID:        id,
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
 	}
 
-	err := u.service.UpdateUser(user)
+	err = u.service.UpdateUser(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

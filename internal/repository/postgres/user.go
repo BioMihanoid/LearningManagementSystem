@@ -15,7 +15,7 @@ func NewUser(db *sql.DB) *User {
 }
 
 func (u *User) GetAllUsers() ([]models.User, error) {
-	query := fmt.Sprintf("SELECT id, username, email, role FROM %s", usersTable)
+	query := fmt.Sprintf("SELECT user_id, first_name, last_name, email, role_id FROM %s", usersTable)
 
 	rows, err := u.db.Query(query)
 	if err != nil {
@@ -25,7 +25,7 @@ func (u *User) GetAllUsers() ([]models.User, error) {
 	users := make([]models.User, 0)
 	for rows.Next() {
 		u := models.User{}
-		err = rows.Scan(&u.ID, &u.Name, &u.Email, &u.Role)
+		err = rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.RoleID)
 		users = append(users, u)
 	}
 
@@ -33,7 +33,7 @@ func (u *User) GetAllUsers() ([]models.User, error) {
 }
 
 func (u *User) GetUserByID(id int) (models.User, error) {
-	query := fmt.Sprintf("SELECT username, email, role FROM %s WHERE id = $1", usersTable)
+	query := fmt.Sprintf("SELECT first_name, last_name, email, role_id FROM %s WHERE user_id = $1", usersTable)
 
 	rows, err := u.db.Query(query, id)
 	if err != nil {
@@ -42,27 +42,25 @@ func (u *User) GetUserByID(id int) (models.User, error) {
 
 	user := models.User{}
 	for rows.Next() {
-		err = rows.Scan(&user.Name, &user.Email, &user.Role)
+		err = rows.Scan(&user.FirstName, &user.LastName, &user.Email, &user.RoleID)
 	}
 	if err != nil {
 		return models.User{}, err
 	}
 
-	user.ID = uint(id)
+	user.ID = id
 
 	return user, err
 }
 
+// TODO: do new fn ChangeUserRole
+
 func (u *User) ChangeUserRole(id int, role string) error {
-	query := fmt.Sprintf("UPDATE %s SET role = $1 WHERE id = $2", usersTable)
-	_, err := u.db.Exec(query, role, id)
-	return err
+	return nil
 }
 
+// TODO: do new fn UpdateUser
+
 func (u *User) UpdateUser(user models.User) error {
-	query := fmt.Sprintf("UPDATE %s set username = $1 WHERE id = $2", usersTable)
-	_, err := u.db.Exec(query, user.Name, int(user.ID))
-	query = fmt.Sprintf("UPDATE %s set email = $1 WHERE id = $2", usersTable)
-	_, err = u.db.Exec(query, user.Email, int(user.ID))
-	return err
+	return nil
 }

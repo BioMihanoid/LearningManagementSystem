@@ -1,11 +1,7 @@
 package pkg
 
 import (
-	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -38,26 +34,4 @@ func GetUserIdFromJWT(tokenString string) (string, error) {
 	}
 
 	return "", err
-}
-
-func AuthorizeRole(requiredRole string, service service.Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		v, _ := c.Get("userId")
-
-		id, _ := strconv.Atoi(v.(string))
-
-		user, err := service.GetUserById(id)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		if user.Role != requiredRole {
-			c.JSON(http.StatusForbidden, gin.H{"error": "not admin"})
-			c.Abort()
-			return
-		}
-
-		c.Next()
-	}
 }

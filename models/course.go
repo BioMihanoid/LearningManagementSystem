@@ -3,9 +3,8 @@ package models
 import "time"
 
 type Course struct {
-	ID          int
-	Title       string
-	Description string
-	CreatedBy   string
-	CreatedUp   time.Duration
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
 }
