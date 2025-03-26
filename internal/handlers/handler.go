@@ -4,8 +4,6 @@ import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strings"
 )
 
 type Handler struct {
@@ -36,18 +34,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	}
 
 	authGroup := auth.Group("/")
-	authGroup.Use(func(ctx *gin.Context) {
-		authHeaderValue := ctx.GetHeader("Authorization")
-		parsed := strings.Split(authHeaderValue, " ")
-		if len(parsed) > 1 && parsed[0] == "Bearer" {
-			userId, err := pkg.GetUserIdFromJWT(parsed[1])
-			if err != nil {
-				ctx.AbortWithStatus(http.StatusUnauthorized)
-			}
-			ctx.Set("userId", userId)
-		}
-		ctx.Next()
-	})
+	authGroup.Use(pkg.GetAccessWithToken)
 	{
 		userHandler := NewUserHandler(h.services)
 		authGroup.GET("/profile", userHandler.GetProfile)
@@ -68,8 +55,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authGroup.POST("/test/:id/submit", testHandler.SubmitTest)
 
 		teacherGroup := authGroup.Group("/teacher")
-		//TODO: create new check role fn
-		teacherGroup.Use()
+		teacherGroup.Use(pkg.GetAccessRole(1, h.services))
 		{
 			teacherGroup.POST("/courses")
 			teacherGroup.PUT("/courses/:id")
@@ -81,8 +67,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		}
 
 		adminGroup := authGroup.Group("/admin")
-		//TODO: create new check role fn
-		adminGroup.Use()
+		adminGroup.Use(pkg.GetAccessRole(3, h.services))
 		{
 			adminGroup.GET("/users", userHandler.GetAllUsers)
 			adminGroup.PUT("/users/:user_id", userHandler.ChangeUserRole)

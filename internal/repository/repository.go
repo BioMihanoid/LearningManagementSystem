@@ -22,14 +22,20 @@ type UserRepository interface {
 	DeleteUser(id int) error
 }
 
+type RoleRepository interface {
+	GetLevelAccess(id int) (int, error)
+}
+
 type Repository struct {
 	Authorization
 	UserRepository
+	RoleRepository
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
 		Authorization:  postgres.NewAuth(db),
 		UserRepository: postgres.NewUser(db),
+		RoleRepository: postgres.NewRole(db),
 	}
 }

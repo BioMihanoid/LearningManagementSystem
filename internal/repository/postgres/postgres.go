@@ -9,6 +9,7 @@ import (
 
 const (
 	usersTable = "users"
+	rolesTable = "roles"
 )
 
 func NewPostgresDB(cfg *config.Config) (*sql.DB, error) {
