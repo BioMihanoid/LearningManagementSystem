@@ -154,7 +154,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	id := GetUserID(c)
+	id := GetUserIDParam(c)
 
 	jwt, err := pkg.GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
 

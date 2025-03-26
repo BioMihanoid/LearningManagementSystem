@@ -13,8 +13,11 @@ type Authorization interface {
 type UserService interface {
 	GetAllUsers() ([]models.User, error)
 	GetUserById(id int) (models.User, error)
-	ChangeUserRole(id int, role string) error
-	UpdateUser(user models.User) error
+	ChangeUserRole(id int, roleID int) error
+	UpdateFirstName(id int, name string) error
+	UpdateLastName(id int, name string) error
+	UpdateEmail(id int, email string) error
+	DeleteUser(id int) error
 }
 
 type Service struct {

@@ -15,8 +15,11 @@ type Authorization interface {
 type UserRepository interface {
 	GetAllUsers() ([]models.User, error)
 	GetUserByID(id int) (models.User, error)
-	ChangeUserRole(id int, role string) error
-	UpdateUser(user models.User) error
+	ChangeUserRole(id int, roleId int) error
+	UpdateFirstName(id int, name string) error
+	UpdateLastName(id int, name string) error
+	UpdateEmail(id int, email string) error
+	DeleteUser(id int) error
 }
 
 type Repository struct {

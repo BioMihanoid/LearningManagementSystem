@@ -3,10 +3,8 @@ package handlers
 import (
 	"fmt"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,7 +33,7 @@ type profileRequest struct {
 }
 
 type roleRequest struct {
-	Role string `json:"role"`
+	RoleID int `json:"role"`
 }
 
 type authHeader struct {
@@ -43,20 +41,7 @@ type authHeader struct {
 }
 
 func (u *UserHandler) GetProfile(c *gin.Context) {
-	h := authHeader{}
-	if err := c.ShouldBindHeader(&h); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	token := strings.Split(h.Token, "Bearer ")[1]
-
-	strID, err := pkg.GetUserIdFromJWT(token)
-	id, err := strconv.Atoi(strID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	id := GetUserID(c)
 
 	user, err := u.service.GetUserById(id)
 	if err != nil {
@@ -69,37 +54,6 @@ func (u *UserHandler) GetProfile(c *gin.Context) {
 		LastName:  user.LastName,
 		Email:     user.Email,
 	})
-}
-
-func (u *UserHandler) UpdateProfile(c *gin.Context) {
-	input := profileRequest{}
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Struct(input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Errorf("error incorect data").Error(),
-		})
-	}
-
-	id := GetUserID(c)
-
-	user := models.User{
-		ID:        id,
-		FirstName: input.FirstName,
-		LastName:  input.LastName,
-		Email:     input.Email,
-	}
-
-	err = u.service.UpdateUser(user)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
 }
 
 func (u *UserHandler) GetAllUsers(c *gin.Context) {
@@ -135,7 +89,7 @@ func (u *UserHandler) ChangeUserRole(c *gin.Context) {
 		return
 	}
 
-	err = u.service.ChangeUserRole(id, input.Role)
+	err = u.service.ChangeUserRole(id, input.RoleID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: err.Error(),
@@ -146,10 +100,83 @@ func (u *UserHandler) ChangeUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-func GetUserID(c *gin.Context) int {
+func GetUserIDParam(c *gin.Context) int {
 	v, _ := c.Get("userId")
 
 	id, _ := strconv.Atoi(v.(string))
 
 	return id
+}
+
+func GetUserID(c *gin.Context) int {
+	h := authHeader{}
+	if err := c.ShouldBindHeader(&h); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return 0
+	}
+	token := strings.Split(h.Token, "Bearer ")[1]
+
+	strID, err := pkg.GetUserIdFromJWT(token)
+	id, err := strconv.Atoi(strID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return 0
+	}
+
+	return id
+}
+
+func (u *UserHandler) UpdateFirstName(c *gin.Context) {
+	input := profileRequest{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request"),
+		})
+		return
+	}
+
+	id := GetUserID(c)
+	err := u.service.UpdateFirstName(id, input.FirstName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error update first name"),
+		})
+		return
+	}
+}
+
+func (u *UserHandler) UpdateLastName(c *gin.Context) {
+	input := profileRequest{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request"),
+		})
+	}
+
+	id := GetUserID(c)
+	err := u.service.UpdateLastName(id, input.LastName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error update last name"),
+		})
+		return
+	}
+}
+
+func (u *UserHandler) UpdateEmail(c *gin.Context) {
+	input := profileRequest{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request"),
+		})
+		return
+	}
+	id := GetUserID(c)
+	err := u.service.UpdateEmail(id, input.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error update email"),
+		})
+		return
+	}
 }

@@ -53,14 +53,38 @@ func (u *User) GetUserByID(id int) (models.User, error) {
 	return user, err
 }
 
-// TODO: do new fn ChangeUserRole
-
-func (u *User) ChangeUserRole(id int, role string) error {
-	return nil
+func (u *User) ChangeUserRole(id int, roleID int) error {
+	query := fmt.Sprintf("UPDATE %s SET role_id = $1 WHERE user_id = $2", usersTable)
+	_, err := u.db.Exec(query, roleID, id)
+	return err
 }
 
-// TODO: do new fn UpdateUser
+func (u *User) UpdateFirstName(id int, name string) error {
+	query := fmt.Sprintf("UPDATE %s SET first_name = $1 WHERE user_id = $2", usersTable)
+	_, err := u.db.Exec(query, name, id)
+	return err
+}
 
-func (u *User) UpdateUser(user models.User) error {
-	return nil
+func (u *User) UpdateLastName(id int, name string) error {
+	query := fmt.Sprintf("UPDATE %s SET last_name = $1 WHERE user_id = $2", usersTable)
+	_, err := u.db.Exec(query, name, id)
+	return err
+}
+
+func (u *User) UpdateEmail(id int, email string) error {
+	var idCheck int
+	query := fmt.Sprintf("SELECT user_id FROM %s WHERE email = $1", usersTable)
+	row := u.db.QueryRow(query, email)
+	if row.Scan(&idCheck) != nil {
+		return fmt.Errorf("%s already exists", email)
+	}
+	query = fmt.Sprintf("UPDATE %s SET email = $1 WHERE user_id = $2", usersTable)
+	_, err := u.db.Exec(query, email, id)
+	return err
+}
+
+func (u *User) DeleteUser(id int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE user_id = $1", usersTable)
+	_, err := u.db.Exec(query, id)
+	return err
 }

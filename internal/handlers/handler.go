@@ -51,7 +51,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		userHandler := NewUserHandler(h.services)
 		authGroup.GET("/profile", userHandler.GetProfile)
-		authGroup.PUT("/profile", userHandler.UpdateProfile)
+		authGroup.POST("/profile/update_first_name", userHandler.UpdateFirstName)
+		authGroup.POST("/profile/update_last_name", userHandler.UpdateLastName)
+		authGroup.POST("/profile/update_email", userHandler.UpdateEmail)
 
 		courseHandler := NewCourseHandler(h.services)
 		authGroup.GET("/courses", courseHandler.GetAllCourses)

@@ -23,15 +23,23 @@ func (u *User) GetUserById(id int) (models.User, error) {
 	return u.repos.GetUserByID(id)
 }
 
-// TODO: do new fn ChangeUserRole
-
-func (u *User) ChangeUserRole(id int, role string) error {
-	return nil
+func (u *User) ChangeUserRole(id int, roleID int) error {
+	// TODO: add check role exist
+	return u.repos.ChangeUserRole(id, roleID)
 }
 
-// TODO: do new fn UpdateUser
+func (u *User) UpdateFirstName(id int, name string) error {
+	return u.repos.UpdateFirstName(id, name)
+}
 
-func (u *User) UpdateUser(changeUser models.User) error {
+func (u *User) UpdateLastName(id int, name string) error {
+	return u.repos.UpdateLastName(id, name)
+}
 
-	return nil
+func (u *User) UpdateEmail(id int, email string) error {
+	return u.repos.UpdateEmail(id, email)
+}
+
+func (u *User) DeleteUser(id int) error {
+	return u.repos.DeleteUser(id)
 }
