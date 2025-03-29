@@ -8,8 +8,14 @@ import (
 )
 
 const (
-	usersTable = "users"
-	rolesTable = "roles"
+	usersTable       = "users"
+	rolesTable       = "roles"
+	courseTable      = "courses"
+	materialsTable   = "materials"
+	testsTable       = "tests"
+	testResultsTable = "test_results"
+	enrollmentsTable = "enrollments"
+	logsTable        = "logs"
 )
 
 func NewPostgresDB(cfg *config.Config) (*sql.DB, error) {
