@@ -31,7 +31,7 @@ func (c *Course) GetCourseByID(id int) (models.Course, error) {
 	return course, nil
 }
 
-func (c *Course) GetALLCourses() ([]models.Course, error) {
+func (c *Course) GetAllCourses() ([]models.Course, error) {
 	var courses []models.Course
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY course_id ASC", courseTable)
 	rows, err := c.db.Query(query)

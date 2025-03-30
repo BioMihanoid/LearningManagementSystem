@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository"
 	"github.com/BioMihanoid/LearningManagementSystem/models"
 )
@@ -38,6 +39,13 @@ func (u *User) UpdateLastName(id int, name string) error {
 
 func (u *User) UpdateEmail(id int, email string) error {
 	return u.repos.UpdateEmail(id, email)
+}
+
+func (u *User) UpdatePassword(id int, password string, replyPassword string) error {
+	if password != replyPassword {
+		return fmt.Errorf("passwords don't match")
+	}
+	return u.repos.ChangePassword(id, password)
 }
 
 func (u *User) DeleteUser(id int) error {

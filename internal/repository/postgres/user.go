@@ -83,6 +83,12 @@ func (u *User) UpdateEmail(id int, email string) error {
 	return err
 }
 
+func (u *User) ChangePassword(id int, password string) error {
+	query := fmt.Sprintf("UPDATE %s SET password = $1 WHERE user_id = $2", usersTable)
+	_, err := u.db.Exec(query, password, id)
+	return err
+}
+
 func (u *User) DeleteUser(id int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE user_id = $1", usersTable)
 	_, err := u.db.Exec(query, id)

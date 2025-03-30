@@ -16,13 +16,13 @@ func NewMaterial(db *sql.DB) *Material {
 	}
 }
 
-func (m *Material) CreateMaterial(courseID int, title string, content string) error {
+func (m *Material) CreateMaterial(material models.Material) error {
 	query := fmt.Sprintf("INSERT INTO %s(course_id, title, content) VALUES($1, $2, $3))", materialsTable)
-	_, err := m.db.Exec(query, courseID, title, content)
+	_, err := m.db.Exec(query, material.CourseID, material.Title, material.Content)
 	return err
 }
 
-func (m *Material) GetAllMaterialByID(courseID int) ([]models.Material, error) {
+func (m *Material) GetCourseMaterial(courseID int) ([]models.Material, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE course_id=$1", materialsTable)
 	rows, err := m.db.Query(query, courseID)
 	if err != nil {

@@ -19,6 +19,7 @@ type UserRepository interface {
 	UpdateFirstName(id int, name string) error
 	UpdateLastName(id int, name string) error
 	UpdateEmail(id int, email string) error
+	ChangePassword(id int, password string) error
 	DeleteUser(id int) error
 }
 
@@ -31,7 +32,7 @@ type CourseRepository interface {
 	UpdateTitleCourse(id int, title string) error
 	UpdateDescriptionCourse(id int, description string) error
 	GetCourseByID(id int) (models.Course, error)
-	GetALLCourses() ([]models.Course, error)
+	GetAllCourses() ([]models.Course, error)
 	DeleteCourseByID(id int) error
 }
 
@@ -43,9 +44,9 @@ type EnrollmentRepository interface {
 }
 
 type MaterialRepository interface {
-	CreateMaterial(courseID int, title string, content string) error
+	CreateMaterial(material models.Material) error
 	GetMaterialByID(materialID int) (models.Material, error)
-	GetAllMaterialByID(courseID int) ([]models.Material, error)
+	GetCourseMaterial(courseID int) ([]models.Material, error)
 	UpdateTitleMaterial(materialID int, title string) error
 	UpdateContentMaterial(materialID int, content string) error
 	DeleteMaterial(materialID int) error
