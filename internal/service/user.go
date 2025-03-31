@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository"
 	"github.com/BioMihanoid/LearningManagementSystem/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -45,7 +46,11 @@ func (u *User) UpdatePassword(id int, password string, replyPassword string) err
 	if password != replyPassword {
 		return fmt.Errorf("passwords don't match")
 	}
-	return u.repos.ChangePassword(id, password)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return u.repos.ChangePassword(id, string(hashedPassword))
 }
 
 func (u *User) DeleteUser(id int) error {
