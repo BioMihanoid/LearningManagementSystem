@@ -50,6 +50,24 @@ type EnrollmentService interface {
 	GetAllCoursesCurrentUser(userID int) ([]models.Enrollment, error)
 }
 
+type TestService interface {
+	CreateTest(test models.Test) error
+	GetTestByID(testID int) (models.Test, error)
+	GetAllTestsCourse(courseID int) ([]models.Test, error)
+	GetAllTests() ([]models.Test, error)
+	UpdateQuestionTest(testID int, question string) error
+	UpdateAnswerTest(testID int, answer string) error
+	DeleteTest(testID int) error
+	SubmitTest(testAnswer string, userAnswer string) int
+}
+
+type TestResultService interface {
+	CreateTestResult(userID int, testID int, score int) error
+	GetTestResult(userID int, testResultID int) (models.TestResult, error)
+	UpdateTestResult(testResultID int, score int) error
+	DeleteTestResult(testResultID int) error
+}
+
 type Service struct {
 	Authorization
 	UserService
@@ -57,6 +75,8 @@ type Service struct {
 	CourseService
 	MaterialService
 	EnrollmentService
+	TestService
+	TestResultService
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -67,5 +87,7 @@ func NewService(repos *repository.Repository) *Service {
 		CourseService:     NewCourse(repos),
 		MaterialService:   NewMaterial(repos),
 		EnrollmentService: NewEnrollment(repos),
+		TestService:       NewTest(repos),
+		TestResultService: NewTestResult(repos),
 	}
 }

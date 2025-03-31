@@ -28,7 +28,7 @@ func (t *Test) GetTestByID(testID int) (models.Test, error) {
 	return test, err
 }
 
-func (t *Test) GetAllTestsByCourseID(courseID int) ([]models.Test, error) {
+func (t *Test) GetAllTestsCourse(courseID int) ([]models.Test, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE course_id=$1", testsTable)
 	rows, err := t.db.Query(query, courseID)
 	if err != nil {

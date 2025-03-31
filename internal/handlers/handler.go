@@ -52,12 +52,14 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authGroup.GET("/profile/subscriptions", userHandler.GetAllCoursesCurrentUser)
 
 		materialHandler := NewMaterialHandler(h.services)
-		authGroup.GET("/courses/:course_id/material/:material_id", materialHandler.GetMaterialByID)
+		authGroup.GET("/courses/:course_id/materials/:material_id", materialHandler.GetMaterialByID)
 		authGroup.GET("/courses/:course_id/materials", materialHandler.GetCourseMaterial)
 
 		testHandler := NewTestHandler(h.services)
-		authGroup.GET("/test/:id", testHandler.GetTestByID)
-		authGroup.POST("/test/:id/submit", testHandler.SubmitTest)
+		authGroup.GET("/courses/:course_id/tests/:test_id", testHandler.GetTestByID)
+		authGroup.POST("/courses/:course_id/tests/:test_id/submit", testHandler.SubmitTest)
+
+		authGroup.GET("/courses/:course_id/tests/:test_result_id", testHandler.GetTestResult)
 
 		teacherGroup := authGroup.Group("/teacher")
 		teacherGroup.Use(pkg.GetAccessRole(1, h.services))
@@ -67,10 +69,16 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			teacherGroup.POST("/courses/:course_id/update_description", courseHandler.UpdateDescriptionCourse)
 			teacherGroup.DELETE("/courses/:course_id", courseHandler.DeleteCourseByID)
 
-			teacherGroup.POST("/courses/:course_id/material", materialHandler.CreateMaterial)
-			teacherGroup.POST("/courses/:course_id/material/:material_id/update_title", materialHandler.UpdateTitleMaterial)
-			teacherGroup.POST("/courses/:course_id/material/:material_id/update_content", materialHandler.UpdateContentMaterial)
-			teacherGroup.DELETE("/courses/:course_id/material/:material_id", materialHandler.DeleteMaterial)
+			teacherGroup.POST("/courses/:course_id/materials", materialHandler.CreateMaterial)
+			teacherGroup.POST("/courses/:course_id/materials/:material_id/update_title", materialHandler.UpdateTitleMaterial)
+			teacherGroup.POST("/courses/:course_id/materials/:material_id/update_content", materialHandler.UpdateContentMaterial)
+			teacherGroup.DELETE("/courses/:course_id/materials/:material_id", materialHandler.DeleteMaterial)
+
+			teacherGroup.POST("/courses/:course_id/tests/create_test", testHandler.CreateTest)
+			teacherGroup.DELETE("/courses/:course_id/tests/:test_id/delete_test", testHandler.DeleteTest)
+
+			teacherGroup.POST("/courses/:course_id/tests/:test_result_id/update_result", testHandler.UpdateTestResult)
+			teacherGroup.DELETE("/courses/:course_id/tests/:test_result_id/delete_test_result", testHandler.DeleteTestResult)
 		}
 
 		adminGroup := authGroup.Group("/admin")

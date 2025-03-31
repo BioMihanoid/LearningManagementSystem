@@ -55,7 +55,7 @@ type MaterialRepository interface {
 type TestRepository interface {
 	CreateTest(courseID int, question string, answer string) error
 	GetTestByID(testID int) (models.Test, error)
-	GetAllTestsByCourseID(courseID int) ([]models.Test, error)
+	GetAllTestsCourse(courseID int) ([]models.Test, error)
 	GetAllTests() ([]models.Test, error)
 	UpdateQuestionTest(testID int, question string) error
 	UpdateAnswerTest(testID int, answer string) error
