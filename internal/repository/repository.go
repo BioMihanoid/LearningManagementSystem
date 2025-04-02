@@ -2,19 +2,19 @@ package repository
 
 import (
 	"database/sql"
-	models2 "github.com/BioMihanoid/LearningManagementSystem/internal/models"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository/postgres"
 )
 
 type Authorization interface {
-	CreateUser(user models2.User) (int, error)
-	GetUser(email string, passwordHash string) (models2.User, error)
+	CreateUser(user models.User) (int, error)
+	GetUser(email string, passwordHash string) (models.User, error)
 	GetUserID(email string) (int, error)
 }
 
 type UserRepository interface {
-	GetAllUsers() ([]models2.User, error)
-	GetUserByID(id int) (models2.User, error)
+	GetAllUsers() ([]models.User, error)
+	GetUserByID(id int) (models.User, error)
 	ChangeUserRole(id int, roleId int) error
 	UpdateFirstName(id int, name string) error
 	UpdateLastName(id int, name string) error
@@ -28,25 +28,25 @@ type RoleRepository interface {
 }
 
 type CourseRepository interface {
-	CreateCourse(course models2.Course) error
+	CreateCourse(course models.Course) error
 	UpdateTitleCourse(id int, title string) error
 	UpdateDescriptionCourse(id int, description string) error
-	GetCourseByID(id int) (models2.Course, error)
-	GetAllCourses() ([]models2.Course, error)
+	GetCourseByID(id int) (models.Course, error)
+	GetAllCourses() ([]models.Course, error)
 	DeleteCourseByID(id int) error
 }
 
 type EnrollmentRepository interface {
 	SubscribeOnCourse(userID int, courseID int) error
 	UnsubscribeOnCourse(userID int, courseID int) error
-	GetAllUserSubscribedToTheCourse(courseID int) ([]models2.Enrollment, error)
-	GetAllCoursesCurrentUser(userID int) ([]models2.Enrollment, error)
+	GetAllUserSubscribedToTheCourse(courseID int) ([]models.Enrollment, error)
+	GetAllCoursesCurrentUser(userID int) ([]models.Enrollment, error)
 }
 
 type MaterialRepository interface {
-	CreateMaterial(material models2.Material) error
-	GetMaterialByID(materialID int) (models2.Material, error)
-	GetCourseMaterial(courseID int) ([]models2.Material, error)
+	CreateMaterial(material models.Material) error
+	GetMaterialByID(materialID int) (models.Material, error)
+	GetCourseMaterial(courseID int) ([]models.Material, error)
 	UpdateTitleMaterial(materialID int, title string) error
 	UpdateContentMaterial(materialID int, content string) error
 	DeleteMaterial(materialID int) error
@@ -54,9 +54,9 @@ type MaterialRepository interface {
 
 type TestRepository interface {
 	CreateTest(courseID int, question string, answer string) error
-	GetTestByID(testID int) (models2.Test, error)
-	GetAllTestsCourse(courseID int) ([]models2.Test, error)
-	GetAllTests() ([]models2.Test, error)
+	GetTestByID(testID int) (models.Test, error)
+	GetAllTestsCourse(courseID int) ([]models.Test, error)
+	GetAllTests() ([]models.Test, error)
 	UpdateQuestionTest(testID int, question string) error
 	UpdateAnswerTest(testID int, answer string) error
 	DeleteTest(testID int) error
@@ -64,15 +64,15 @@ type TestRepository interface {
 
 type TestResultRepository interface {
 	CreateTestResult(userID int, testID int, score int) error
-	GetTestResult(testResultID int) (models2.TestResult, error)
+	GetTestResult(testResultID int) (models.TestResult, error)
 	UpdateTestResult(testResultID int, score int) error
 	DeleteTestResult(testResultID int) error
 }
 
 type LogRepository interface {
 	CreateLog(userID int, action string) error
-	GetLogByID(logID int) (models2.Log, error)
-	GetLogsCurrentUser(userID int) ([]models2.Log, error)
+	GetLogByID(logID int) (models.Log, error)
+	GetLogsCurrentUser(userID int) ([]models.Log, error)
 	DeleteLogByID(logID int) error
 }
 

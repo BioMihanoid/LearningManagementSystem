@@ -1,0 +1,58 @@
+CREATE TABLE IF NOT EXISTS roles (
+    role_id SMALLINT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL);
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role_id SMALLINT REFERENCES roles(role_id) ON DELETE SET -1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS courses (
+    course_id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    user_id SERIAL REFERENCES users(user_id) ON DELETE SET NULL,
+    course_id SERIAL REFERENCES courses(course_id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS materials (
+    material_id SERIAL PRIMARY KEY,
+    course_id SERIAL REFERENCES courses(course_id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tests (
+    test_id SERIAL PRIMARY KEY,
+    course_id SERIAL REFERENCES courses(course_id) ON DELETE SET NULL,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tests_result (
+    test_result_id SERIAL PRIMARY KEY,
+    user_id SERIAL REFERENCES users(user_id) ON DELETE SET NULL,
+    test_id SERIAL REFERENCES tests(test_id) ON DELETE SET NULL,
+    score INT NOT NULL,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS logs (
+    log_id SERIAL PRIMARY KEY,
+    user_id SERIAL REFERENCES users(user_id) ON DELETE SET -1,
+    action VARCHAR(255) not null,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
