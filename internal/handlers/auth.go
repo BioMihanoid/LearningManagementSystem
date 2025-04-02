@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/middleware"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -46,7 +47,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	input := RegisterRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request: %s", err.Error()),
+			Error: fmt.Sprintf("error parsing request: %s " + err.Error()),
 		})
 		return
 	}
@@ -56,14 +57,15 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	err := validate.Struct(input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Errorf("error incorect data").Error(),
+			Error: fmt.Sprintf("error incorect data " + err.Error()),
 		})
+		return
 	}
 
 	user, err := h.service.GetUser(input.Email, input.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error get user"),
+			Error: fmt.Sprintf("error get user " + err.Error()),
 		})
 		return
 	}
@@ -80,8 +82,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	err = validate.Struct(input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Errorf("error incorect data").Error(),
+			Error: fmt.Sprintf("error incorect data " + err.Error()),
 		})
+		return
 	}
 
 	user = models.User{
@@ -95,15 +98,15 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	id, err := h.service.CreateUser(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error create user"),
+			Error: fmt.Sprintf("error create user " + err.Error()),
 		})
 		return
 	}
 
-	jwt, err := pkg.GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
+	jwt, err := middleware.GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error create jwt"),
+			Error: fmt.Sprintf("error create jwt " + err.Error()),
 		})
 		return
 	}
@@ -117,8 +120,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	input := LoginRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
 		})
+		return
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
@@ -126,22 +130,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	err := validate.Struct(input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Errorf("error incorect data").Error(),
+			Error: fmt.Sprintf("error incorect data " + err.Error()),
 		})
+		return
 	}
 
 	user, err := h.service.GetUser(input.Email, input.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error get user"),
+			Error: fmt.Sprintf("error get user  " + err.Error()),
 		})
 		return
 	}
 
-	jwt, err := pkg.GenerateJWT(strconv.Itoa(int(user.ID)), time.Now().Add(30*time.Minute))
+	jwt, err := middleware.GenerateJWT(strconv.Itoa(user.ID), time.Now().Add(30*time.Minute))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error create jwt"),
+			Error: fmt.Sprintf("error create jwt " + err.Error()),
 		})
 		return
 	}
@@ -154,14 +159,20 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	id := GetUserIDParam(c)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error get userID " + err.Error()),
+		})
+	}
 
-	jwt, err := pkg.GenerateJWT(strconv.Itoa(id), time.Now().Add(30*time.Minute))
+	jwt, err := middleware.GenerateJWT(strconv.Itoa(userID), time.Now().Add(30*time.Minute))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error create jwt"),
+			Error: fmt.Sprintf("error create jwt  " + err.Error()),
 		})
+		return
 	}
 
 	output := LoginResponse{

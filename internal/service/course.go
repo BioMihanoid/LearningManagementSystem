@@ -1,8 +1,8 @@
 package service
 
 import (
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
 )
 
 type Course struct {

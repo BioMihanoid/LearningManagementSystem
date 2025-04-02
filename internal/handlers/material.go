@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 type MaterialHandler struct {
@@ -22,89 +21,127 @@ func (m *MaterialHandler) CreateMaterial(c *gin.Context) {
 	input := models.Material{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
 		})
+		return
 	}
-	input.CourseID = GetCourseIDParam(c)
-	if err := m.services.CreateMaterial(input); err != nil {
+	courseID, err := pkg.GetID(c, "course_id")
+	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error getting course id " + err.Error()),
 		})
+		return
+	}
+	input.CourseID = courseID
+	if err = m.services.CreateMaterial(input); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error creating material " + err.Error()),
+		})
+		return
 	}
 	c.JSON(http.StatusOK, "ok")
 }
 
 func (m *MaterialHandler) GetMaterialByID(c *gin.Context) {
-	id := GetMaterialIDParam(c)
+	id, err := pkg.GetID(c, "material_id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting material id " + err.Error()),
+		})
+		return
+	}
 	material, err := m.services.GetMaterialByID(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error getting material " + err.Error()),
 		})
+		return
 	}
 	c.JSON(http.StatusOK, material)
 }
 
 func (m *MaterialHandler) GetCourseMaterial(c *gin.Context) {
-	id := GetCourseIDParam(c)
-	materials, err := m.services.GetCourseMaterial(id)
+	courseID, err := pkg.GetID(c, "course_id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error getting course id " + err.Error()),
 		})
+		return
+	}
+	materials, err := m.services.GetCourseMaterial(courseID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting material " + err.Error()),
+		})
+		return
 	}
 	c.JSON(http.StatusOK, materials)
 }
 
 func (m *MaterialHandler) UpdateTitleMaterial(c *gin.Context) {
-	id := GetMaterialIDParam(c)
-	var input string
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
-		})
-	}
-	err := m.services.UpdateTitleMaterial(id, input)
+	materialID, err := pkg.GetID(c, "material_id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error getting material id " + err.Error()),
 		})
+		return
+	}
+	var input string
+	if err = c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
+		})
+		return
+	}
+	err = m.services.UpdateTitleMaterial(materialID, input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error updating material " + err.Error()),
+		})
+		return
 	}
 	c.JSON(http.StatusOK, "ok")
 }
 
 func (m *MaterialHandler) UpdateContentMaterial(c *gin.Context) {
-	id := GetMaterialIDParam(c)
-	var input string
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
-		})
-	}
-	err := m.services.UpdateTitleMaterial(id, input)
+	materialID, err := pkg.GetID(c, "material_id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error getting material id " + err.Error()),
 		})
+		return
+	}
+	var input string
+	if err = c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
+		})
+		return
+	}
+	err = m.services.UpdateContentMaterial(materialID, input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error updating material " + err.Error()),
+		})
+		return
 	}
 	c.JSON(http.StatusOK, "ok")
 }
 
 func (m *MaterialHandler) DeleteMaterial(c *gin.Context) {
-	id := GetMaterialIDParam(c)
-	err := m.services.DeleteMaterial(id)
+	materialID, err := pkg.GetID(c, "material_id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error getting material id " + err.Error()),
 		})
+		return
+	}
+	err = m.services.DeleteMaterial(materialID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error deleting material " + err.Error()),
+		})
+		return
 	}
 	c.JSON(http.StatusOK, "ok")
-}
-
-func GetMaterialIDParam(c *gin.Context) int {
-	v, _ := c.Get("material_id")
-
-	id, _ := strconv.Atoi(v.(string))
-
-	return id
 }

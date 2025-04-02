@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
 )
 
 type TestResult struct {

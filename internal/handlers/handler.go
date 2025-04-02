@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"github.com/BioMihanoid/LearningManagementSystem/internal/middleware"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
-	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,7 +34,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	}
 
 	authGroup := auth.Group("/")
-	authGroup.Use(pkg.GetAccessWithToken)
+	authGroup.Use(middleware.GetAccessWithToken)
 	{
 		userHandler := NewUserHandler(h.services)
 		authGroup.GET("/profile", userHandler.GetProfile)
@@ -59,10 +59,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		authGroup.GET("/courses/:course_id/tests/:test_id", testHandler.GetTestByID)
 		authGroup.POST("/courses/:course_id/tests/:test_id/submit", testHandler.SubmitTest)
 
-		authGroup.GET("/courses/:course_id/tests/:test_result_id", testHandler.GetTestResult)
+		authGroup.GET("/courses/:course_id/test_results/:test_result_id", testHandler.GetTestResult)
 
 		teacherGroup := authGroup.Group("/teacher")
-		teacherGroup.Use(pkg.GetAccessRole(1, h.services))
+		teacherGroup.Use(middleware.GetAccessRole(1, h.services))
 		{
 			teacherGroup.POST("/courses", courseHandler.CreateCourse)
 			teacherGroup.POST("/courses/:course_id/update_title", courseHandler.UpdateTitleCourse)
@@ -77,12 +77,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			teacherGroup.POST("/courses/:course_id/tests/create_test", testHandler.CreateTest)
 			teacherGroup.DELETE("/courses/:course_id/tests/:test_id/delete_test", testHandler.DeleteTest)
 
-			teacherGroup.POST("/courses/:course_id/tests/:test_result_id/update_result", testHandler.UpdateTestResult)
-			teacherGroup.DELETE("/courses/:course_id/tests/:test_result_id/delete_test_result", testHandler.DeleteTestResult)
+			teacherGroup.POST("/courses/:course_id/test_results/:test_result_id/update_result", testHandler.UpdateTestResult)
+			teacherGroup.DELETE("/courses/:course_id/test_results/:test_result_id/delete_test_result", testHandler.DeleteTestResult)
 		}
 
 		adminGroup := authGroup.Group("/admin")
-		adminGroup.Use(pkg.GetAccessRole(3, h.services))
+		adminGroup.Use(middleware.GetAccessRole(3, h.services))
 		{
 			adminGroup.GET("/users", userHandler.GetAllUsers)
 			adminGroup.GET("users/subscriptions/:course_id", userHandler.GetAllUserSubscribedToTheCourse)

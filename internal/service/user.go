@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/repository"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
 	"golang.org/x/crypto/bcrypt"
 )
 

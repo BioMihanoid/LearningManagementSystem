@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 )
 
 type Log struct {

@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/middleware"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/BioMihanoid/LearningManagementSystem/pkg"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 type UserHandler struct {
@@ -36,21 +35,24 @@ type roleRequest struct {
 	RoleID int `json:"role"`
 }
 
-type authHeader struct {
-	Token string `header:"Authorization"`
-}
-
 type passwordRequest struct {
 	Password      string `json:"password"`
 	ReplyPassword string `json:"reply_password"`
 }
 
 func (u *UserHandler) GetProfile(c *gin.Context) {
-	id := GetUserID(c)
-
-	user, err := u.service.GetUserById(id)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+	}
+
+	user, err := u.service.GetUserById(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error get user " + err.Error()),
+		})
 		return
 	}
 
@@ -64,12 +66,12 @@ func (u *UserHandler) GetProfile(c *gin.Context) {
 func (u *UserHandler) GetAllUsers(c *gin.Context) {
 	users, err := u.service.GetAllUsers()
 	if err != nil {
-		return
+		c.JSON(http.StatusInternalServerError, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error get users " + err.Error()),
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"users": users,
-	})
+	c.JSON(http.StatusOK, users)
 }
 
 func (u *UserHandler) ChangeUserRole(c *gin.Context) {
@@ -77,190 +79,261 @@ func (u *UserHandler) ChangeUserRole(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
 		})
 		return
 	}
 
-	userID := c.Param("user_id")
-	id, _ := strconv.Atoi(userID)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+		return
+	}
 
-	user, err := u.service.GetUserById(id)
+	user, err := u.service.GetUserById(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error get user " + err.Error()),
+		})
+		return
+	}
 
-	if err != nil || user.ID == 0 {
+	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("user with id %d does not exist", id),
+			Error: fmt.Sprintf("user with id %d does not exist", userID),
 		})
 		return
 	}
 
-	err = u.service.ChangeUserRole(id, input.RoleID)
+	err = u.service.ChangeUserRole(userID, input.RoleID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: err.Error(),
+			Error: fmt.Sprintf("error change role " + err.Error()),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) UpdateFirstName(c *gin.Context) {
 	input := profileRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
 		})
 		return
 	}
 
-	id := GetUserID(c)
-	err := u.service.UpdateFirstName(id, input.FirstName)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+	}
+
+	err = u.service.UpdateFirstName(userID, input.FirstName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error update first name"),
+			Error: fmt.Sprintf("error update first name " + err.Error()),
 		})
 		return
 	}
+	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) UpdateLastName(c *gin.Context) {
 	input := profileRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
 		})
 	}
 
-	id := GetUserID(c)
-	err := u.service.UpdateLastName(id, input.LastName)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+	}
+
+	err = u.service.UpdateLastName(userID, input.LastName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error update last name"),
+			Error: fmt.Sprintf("error update last name " + err.Error()),
 		})
 		return
 	}
+	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) UpdateEmail(c *gin.Context) {
 	input := profileRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request " + err.Error()),
 		})
 		return
 	}
-	id := GetUserID(c)
-	err := u.service.UpdateEmail(id, input.Email)
+
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+		return
+	}
+
+	err = u.service.UpdateEmail(userID, input.Email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error update email"),
+			Error: fmt.Sprintf("error update email " + err.Error()),
 		})
 		return
 	}
+	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) UpdatePassword(c *gin.Context) {
 	input := passwordRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error parsing request"),
+			Error: fmt.Sprintf("error parsing request  " + err.Error()),
 		})
+		return
 	}
-	id := GetUserID(c)
-	err := u.service.UpdatePassword(id, input.Password, input.ReplyPassword)
+
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+		return
+	}
+
+	err = u.service.UpdatePassword(userID, input.Password, input.ReplyPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: fmt.Sprintf("error update password ") + err.Error(),
 		})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) DeleteUser(c *gin.Context) {
-	id := GetUserIDParam(c)
-
-	err := u.service.DeleteUser(id)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error delete user"),
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
 		})
 		return
 	}
+
+	err = u.service.DeleteUser(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error delete user " + err.Error()),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) SubscribeOnCourse(c *gin.Context) {
-	userID := GetUserID(c)
-	courseID := GetCourseIDParam(c)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+		return
+	}
 
-	err := u.service.SubscribeOnCourse(userID, courseID)
+	courseID, err := pkg.GetID(c, "course_id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting course id " + err.Error()),
+		})
+		return
+	}
+
+	err = u.service.SubscribeOnCourse(userID, courseID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: fmt.Sprintf("error subscribe to course"),
 		})
+		return
 	}
+
 	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) UnsubscribeOnCourse(c *gin.Context) {
-	userID := GetUserID(c)
-	courseID := GetCourseIDParam(c)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+		return
+	}
 
-	err := u.service.UnsubscribeOnCourse(userID, courseID)
+	courseID, err := pkg.GetID(c, "course_id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error unsubscribe to course"),
+			Error: fmt.Sprintf("error getting course id " + err.Error()),
 		})
+		return
 	}
+
+	err = u.service.UnsubscribeOnCourse(userID, courseID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error unsubscribe to course " + err.Error()),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, "ok")
 }
 
 func (u *UserHandler) GetAllUserSubscribedToTheCourse(c *gin.Context) {
-	courseID := GetCourseIDParam(c)
+	courseID, err := pkg.GetID(c, "course_id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting course id " + err.Error()),
+		})
+		return
+	}
 
 	allUsers, err := u.service.GetAllUserSubscribedToTheCourse(courseID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
-			Error: fmt.Sprintf("error get all subscribed to the course"),
+			Error: fmt.Sprintf("error get all subscribed to the course " + err.Error()),
 		})
+		return
 	}
+
 	c.JSON(http.StatusOK, allUsers)
 }
 
 func (u *UserHandler) GetAllCoursesCurrentUser(c *gin.Context) {
-	userID := GetUserID(c)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.ErrorResponse{
+			Error: fmt.Sprintf("error getting user id " + err.Error()),
+		})
+		return
+	}
 
 	allCourses, err := u.service.GetAllCoursesCurrentUser(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkg.ErrorResponse{
 			Error: fmt.Sprintf("error get all subscribed to the course"),
 		})
+		return
 	}
+
 	c.JSON(http.StatusOK, allCourses)
-}
-
-func GetUserIDParam(c *gin.Context) int {
-	v, _ := c.Get("user_id")
-
-	id, _ := strconv.Atoi(v.(string))
-
-	return id
-}
-
-func GetUserID(c *gin.Context) int {
-	h := authHeader{}
-	if err := c.ShouldBindHeader(&h); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return 0
-	}
-	token := strings.Split(h.Token, "Bearer ")[1]
-
-	strID, err := pkg.GetUserIdFromJWT(token)
-	id, err := strconv.Atoi(strID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return 0
-	}
-
-	return id
 }

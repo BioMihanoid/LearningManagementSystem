@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 )
 
 type Course struct {
@@ -21,10 +21,10 @@ func (c *Course) CreateCourse(course models.Course) error {
 }
 
 func (c *Course) GetCourseByID(id int) (models.Course, error) {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", courseTable)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE course_id=$1", courseTable)
 	row := c.db.QueryRow(query, id)
 	course := models.Course{}
-	err := row.Scan(&course.ID, &course.Title, &course.Title, course.CreatedAt)
+	err := row.Scan(&course.ID, &course.Title, &course.Title, &course.CreatedAt)
 	if err != nil {
 		return course, err
 	}
@@ -40,10 +40,11 @@ func (c *Course) GetAllCourses() ([]models.Course, error) {
 	}
 	for rows.Next() {
 		var course models.Course
-		err = rows.Scan(&course.ID, &course.Title, &course.CreatedAt)
+		err = rows.Scan(&course.ID, &course.Title, &course.Description, &course.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
+		courses = append(courses, course)
 	}
 	return courses, nil
 }

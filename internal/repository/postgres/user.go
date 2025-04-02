@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"github.com/BioMihanoid/LearningManagementSystem/models"
+	"github.com/BioMihanoid/LearningManagementSystem/internal/models"
 )
 
 type User struct {
@@ -75,7 +75,8 @@ func (u *User) UpdateEmail(id int, email string) error {
 	var idCheck int
 	query := fmt.Sprintf("SELECT user_id FROM %s WHERE email = $1", usersTable)
 	row := u.db.QueryRow(query, email)
-	if row.Scan(&idCheck) != nil {
+	row.Scan(&idCheck)
+	if idCheck != 0 {
 		return fmt.Errorf("%s already exists", email)
 	}
 	query = fmt.Sprintf("UPDATE %s SET email = $1 WHERE user_id = $2", usersTable)
@@ -84,7 +85,7 @@ func (u *User) UpdateEmail(id int, email string) error {
 }
 
 func (u *User) ChangePassword(id int, password string) error {
-	query := fmt.Sprintf("UPDATE %s SET password = $1 WHERE user_id = $2", usersTable)
+	query := fmt.Sprintf("UPDATE %s SET password_hash = $1 WHERE user_id = $2", usersTable)
 	_, err := u.db.Exec(query, password, id)
 	return err
 }

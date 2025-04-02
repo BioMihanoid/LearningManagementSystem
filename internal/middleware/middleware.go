@@ -1,4 +1,4 @@
-package pkg
+package middleware
 
 import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
@@ -9,6 +9,10 @@ import (
 	"strings"
 	"time"
 )
+
+type authHeader struct {
+	Token string `header:"Authorization"`
+}
 
 var key = []byte("niggerspidors") //TODO :fix
 
@@ -56,10 +60,14 @@ func GetAccessWithToken(ctx *gin.Context) {
 
 func GetAccessRole(levelAccess int, service service.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Get("userId")
-		userId, _ := strconv.Atoi(c.GetString("userId"))
+		userID, err := GetUserID(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized, "message": err.Error()})
+			c.Abort()
+			return
+		}
 
-		user, err := service.GetUserById(userId)
+		user, err := service.GetUserById(userID)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized, "message": err.Error()})
 			c.Abort()
@@ -81,4 +89,22 @@ func GetAccessRole(levelAccess int, service service.Service) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func GetUserID(c *gin.Context) (int, error) {
+	h := authHeader{}
+	if err := c.ShouldBindHeader(&h); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return 0, err
+	}
+	token := strings.Split(h.Token, "Bearer ")[1]
+
+	strID, err := GetUserIdFromJWT(token)
+	id, err := strconv.Atoi(strID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return 0, err
+	}
+
+	return id, nil
 }
