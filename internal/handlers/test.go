@@ -22,6 +22,18 @@ type UserAnswerRequest struct {
 	Answer string `json:"answer" binding:"required"`
 }
 
+// @Summary Создать тест (Только для преподавателей)
+// @Description Создает новый тест для курса
+// @Tags teacher
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param course_id path int true "ID курса"
+// @Param input body models.Test true "Данные теста"
+// @Success 201
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /teacher/courses/{course_id}/tests [post]
 func (t *TestHandler) CreateTest(c *gin.Context) {
 	input := models.Test{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -48,6 +60,16 @@ func (t *TestHandler) CreateTest(c *gin.Context) {
 	c.JSON(http.StatusCreated, "ok")
 }
 
+// @Summary Получить тест по ID
+// @Description Возвращает тест по его идентификатору
+// @Tags tests
+// @Security ApiKeyAuth
+// @Produce json
+// @Param test_id path int true "ID теста"
+// @Success 200 {object} models.Test
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /tests/{test_id} [get]
 func (t *TestHandler) GetTestByID(c *gin.Context) {
 	testID, err := pkg.GetID(c, "test_id")
 	if err != nil {
@@ -66,6 +88,16 @@ func (t *TestHandler) GetTestByID(c *gin.Context) {
 	c.JSON(http.StatusOK, test)
 }
 
+// @Summary Получить тесты курса
+// @Description Возвращает все тесты для указанного курса
+// @Tags tests
+// @Security ApiKeyAuth
+// @Produce json
+// @Param course_id path int true "ID курса"
+// @Success 200 {array} models.Test
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /courses/{course_id}/tests [get]
 func (t *TestHandler) GetAllTestsCourse(c *gin.Context) {
 	courseID, err := pkg.GetID(c, "course_id")
 	if err != nil {
@@ -84,6 +116,14 @@ func (t *TestHandler) GetAllTestsCourse(c *gin.Context) {
 	c.JSON(http.StatusOK, tests)
 }
 
+// @Summary Получить все тесты
+// @Description Возвращает список всех доступных тестов
+// @Tags tests
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {array} models.Test
+// @Failure 500 {object} pkg.ErrorResponse
+// @Router /tests [get]
 func (t *TestHandler) GetAllTests(c *gin.Context) {
 	tests, err := t.service.GetAllTests()
 	if err != nil {
@@ -94,6 +134,18 @@ func (t *TestHandler) GetAllTests(c *gin.Context) {
 	c.JSON(http.StatusOK, tests)
 }
 
+// @Summary Обновить вопрос теста (Только для преподавателей)
+// @Description Изменяет вопрос существующего теста
+// @Tags teacher
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param test_id path int true "ID теста"
+// @Param input body models.Test true "Новый вопрос"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /teacher/tests/{test_id}/question [put]
 func (t *TestHandler) UpdateQuestionTest(c *gin.Context) {
 	testID, err := pkg.GetID(c, "test_id")
 	if err != nil {
@@ -119,6 +171,18 @@ func (t *TestHandler) UpdateQuestionTest(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Обновить ответ теста (Только для преподавателей)
+// @Description Изменяет правильный ответ теста
+// @Tags teacher
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param test_id path int true "ID теста"
+// @Param input body models.Test true "Новый ответ"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /teacher/tests/{test_id}/answer [put]
 func (t *TestHandler) UpdateAnswerTest(c *gin.Context) {
 	testID, err := pkg.GetID(c, "test_id")
 	if err != nil {
@@ -144,6 +208,16 @@ func (t *TestHandler) UpdateAnswerTest(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Удалить тест (Только для преподавателей)
+// @Description Удаляет тест по его идентификатору
+// @Tags teacher
+// @Security ApiKeyAuth
+// @Produce json
+// @Param test_id path int true "ID теста"
+// @Success 200 {string} string "ok"
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /teacher/tests/{test_id} [delete]
 func (t *TestHandler) DeleteTest(c *gin.Context) {
 	testID, err := pkg.GetID(c, "test_id")
 	if err != nil {
@@ -162,6 +236,18 @@ func (t *TestHandler) DeleteTest(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Отправить ответ на тест
+// @Description Проверяет ответ пользователя и сохраняет результат
+// @Tags tests
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param test_id path int true "ID теста"
+// @Param input body UserAnswerRequest true "Ответ пользователя"
+// @Success 200 {object} models.TestResult
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /tests/{test_id}/submit [post]
 func (t *TestHandler) SubmitTest(c *gin.Context) {
 	input := UserAnswerRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -206,6 +292,16 @@ func (t *TestHandler) SubmitTest(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// @Summary Получить результат теста
+// @Description Возвращает результат конкретного теста для текущего пользователя
+// @Tags results
+// @Security ApiKeyAuth
+// @Produce json
+// @Param test_result_id path int true "ID результата теста"
+// @Success 200 {integer} int "Баллы"
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /results/{test_result_id} [get]
 func (t *TestHandler) GetTestResult(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -234,6 +330,16 @@ func (t *TestHandler) GetTestResult(c *gin.Context) {
 	c.JSON(http.StatusOK, testRes.Score)
 }
 
+// @Summary Обновить результат теста (Только для преподавателей)
+// @Description Изменяет результат теста
+// @Tags teacher
+// @Security ApiKeyAuth
+// @Produce json
+// @Param test_result_id path int true "ID результата теста"
+// @Success 200 {string} string "ok"
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /teacher/results/{test_result_id} [put]
 func (t *TestHandler) UpdateTestResult(c *gin.Context) {
 	testResultID, err := pkg.GetID(c, "test_result_id")
 	if err != nil {
@@ -262,6 +368,16 @@ func (t *TestHandler) UpdateTestResult(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Удалить результат теста (Только для преподавателей)
+// @Description Удаляет результат теста
+// @Tags teacher
+// @Security ApiKeyAuth
+// @Produce json
+// @Param test_result_id path int true "ID результата теста"
+// @Success 200 {string} string "ok"
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /teacher/results/{test_result_id} [delete]
 func (t *TestHandler) DeleteTestResult(c *gin.Context) {
 	testResultID, err := pkg.GetID(c, "test_result_id")
 	if err != nil {

@@ -43,6 +43,16 @@ type LoginResponse struct {
 	Token string `json:"token" binding:"required"`
 }
 
+// @Summary Регистрация нового пользователя
+// @Description Создает новую учетную запись пользователя
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param input body RegisterRequest true "Данные для регистрации"
+// @Success 200 {object} RegisterResponse
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 500 {object} pkg.ErrorResponse
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	input := RegisterRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -116,6 +126,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, output)
 }
 
+// @Summary Аутентификация пользователя
+// @Description Вход в систему с использованием email и пароля
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param input body LoginRequest true "Данные для входа"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Failure 500 {object} pkg.ErrorResponse
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	input := LoginRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -158,6 +179,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, output)
 }
 
+// @Summary Обновление токена доступа
+// @Description Генерирует новый JWT токен для авторизованного пользователя
+// @Tags auth
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {

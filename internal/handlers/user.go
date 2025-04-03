@@ -40,6 +40,15 @@ type passwordRequest struct {
 	ReplyPassword string `json:"reply_password"`
 }
 
+// @Summary Получить профиль пользователя
+// @Description Возвращает информацию о текущем аутентифицированном пользователе
+// @Tags users
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} profileResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Failure 500 {object} pkg.ErrorResponse
+// @Router /auth/profile [get]
 func (u *UserHandler) GetProfile(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -63,6 +72,15 @@ func (u *UserHandler) GetProfile(c *gin.Context) {
 	})
 }
 
+// @Summary Получить всех пользователей (Только для администратора)
+// @Description Возвращает список всех зарегистрированных пользователей
+// @Tags admin
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {array} models.User
+// @Failure 403 {object} pkg.ErrorResponse
+// @Failure 500 {object} pkg.ErrorResponse
+// @Router /auth/admin/users [get]
 func (u *UserHandler) GetAllUsers(c *gin.Context) {
 	users, err := u.service.GetAllUsers()
 	if err != nil {
@@ -74,6 +92,19 @@ func (u *UserHandler) GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
+// @Summary Изменить роль пользователя (Только для администратора)
+// @Description Обновляет роль указанного пользователя
+// @Tags admin
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param user_id path int true "ID пользователя"
+// @Param input body roleRequest true "Новая роль"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Failure 500 {object} pkg.ErrorResponse
+// @Router /auth/admin/users/{user_id} [post]
 func (u *UserHandler) ChangeUserRole(c *gin.Context) {
 	input := roleRequest{}
 
@@ -118,6 +149,17 @@ func (u *UserHandler) ChangeUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Обновить имя пользователя
+// @Description Изменяет имя текущего пользователя
+// @Tags users
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param input body profileRequest true "Новое имя"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/profile/update_first_name [post]
 func (u *UserHandler) UpdateFirstName(c *gin.Context) {
 	input := profileRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -144,6 +186,17 @@ func (u *UserHandler) UpdateFirstName(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Обновить фамилию пользователя
+// @Description Изменяет фамилию текущего пользователя
+// @Tags users
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param input body profileRequest true "Новая фамилия"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/profile/update_last_name [post]
 func (u *UserHandler) UpdateLastName(c *gin.Context) {
 	input := profileRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -169,6 +222,17 @@ func (u *UserHandler) UpdateLastName(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Обновить email пользователя
+// @Description Изменяет email текущего пользователя
+// @Tags users
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param input body profileRequest true "Новый email"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/profile/update_email [post]
 func (u *UserHandler) UpdateEmail(c *gin.Context) {
 	input := profileRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -196,6 +260,17 @@ func (u *UserHandler) UpdateEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Обновить пароль пользователя
+// @Description Изменяет пароль текущего пользователя
+// @Tags users
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param input body passwordRequest true "Новый пароль"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/profile/change_password [post]
 func (u *UserHandler) UpdatePassword(c *gin.Context) {
 	input := passwordRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -223,6 +298,16 @@ func (u *UserHandler) UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Удалить пользователя (Только для администратора)
+// @Description Удаляет указанного пользователя из системы
+// @Tags admin
+// @Security ApiKeyAuth
+// @Produce json
+// @Param user_id path int true "ID пользователя"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 403 {object} pkg.ErrorResponse
+// @Router /auth/admin/users/{user_id} [delete]
 func (u *UserHandler) DeleteUser(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -242,6 +327,16 @@ func (u *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Подписаться на курс
+// @Description Добавляет текущего пользователя в подписчики курса
+// @Tags subscriptions
+// @Security ApiKeyAuth
+// @Produce json
+// @Param course_id path int true "ID курса"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/subscribe/{course_id} [post]
 func (u *UserHandler) SubscribeOnCourse(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -270,6 +365,16 @@ func (u *UserHandler) SubscribeOnCourse(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Отписаться от курса
+// @Description Удаляет текущего пользователя из подписчиков курса
+// @Tags subscriptions
+// @Security ApiKeyAuth
+// @Produce json
+// @Param course_id path int true "ID курса"
+// @Success 200
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/unsubscribe/{course_id} [post]
 func (u *UserHandler) UnsubscribeOnCourse(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -298,6 +403,16 @@ func (u *UserHandler) UnsubscribeOnCourse(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
+// @Summary Получить подписчиков курса
+// @Description Возвращает список пользователей, подписанных на указанный курс
+// @Tags courses
+// @Security ApiKeyAuth
+// @Produce json
+// @Param course_id path int true "ID курса"
+// @Success 200 {array} models.User
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/users/subscriptions/{course_id} [get]
 func (u *UserHandler) GetAllUserSubscribedToTheCourse(c *gin.Context) {
 	courseID, err := pkg.GetID(c, "course_id")
 	if err != nil {
@@ -318,6 +433,15 @@ func (u *UserHandler) GetAllUserSubscribedToTheCourse(c *gin.Context) {
 	c.JSON(http.StatusOK, allUsers)
 }
 
+// @Summary Получить курсы пользователя
+// @Description Возвращает список всех курсов, на которые подписан текущий пользователь
+// @Tags subscriptions
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {array} models.Course
+// @Failure 400 {object} pkg.ErrorResponse
+// @Failure 401 {object} pkg.ErrorResponse
+// @Router /auth/profile/subscriptions [get]
 func (u *UserHandler) GetAllCoursesCurrentUser(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {

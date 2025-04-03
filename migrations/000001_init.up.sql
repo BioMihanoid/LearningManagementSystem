@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role_id SMALLINT REFERENCES roles(role_id) ON DELETE SET -1,
+    role_id SMALLINT REFERENCES roles(role_id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS tests_result (
 
 CREATE TABLE IF NOT EXISTS logs (
     log_id SERIAL PRIMARY KEY,
-    user_id SERIAL REFERENCES users(user_id) ON DELETE SET -1,
+    user_id SERIAL REFERENCES users(user_id),
     action VARCHAR(255) not null,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

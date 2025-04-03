@@ -4,6 +4,10 @@ import (
 	"github.com/BioMihanoid/LearningManagementSystem/internal/middleware"
 	"github.com/BioMihanoid/LearningManagementSystem/internal/service"
 	"github.com/gin-gonic/gin"
+
+	_ "github.com/BioMihanoid/LearningManagementSystem/docs"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 type Handler struct {
@@ -19,11 +23,7 @@ func NewHandler(services *service.Service) *Handler {
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.Default()
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	authHandler := NewAuthHandler(h.services)
 	auth := router.Group("/auth")

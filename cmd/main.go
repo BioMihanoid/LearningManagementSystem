@@ -10,6 +10,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @title Learning Management System API
+// @version 1.0
+// @description API Server for Learning Management System Application
+
+// @host localhost:8002
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
